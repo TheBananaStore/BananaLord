@@ -141,4 +141,23 @@ async def kitty(ctx:SlashContext):
         embed.set_footer(text=factjson['fact'])
         await ctx.send(embed=embed)
 
+#coinflip command
+
+determine_flip = [1, 0]
+
+@slash.slash(
+    name="coinflip",
+    description="Heads or tails, which shall it be?",
+    guild_ids=[944368087526944778]
+)
+
+async def coinflip(ctx:SlashContext):
+    if random.choice(determine_flip) == 1:
+        embed = discord.Embed(title="Coinflip | (Bot Name)", color=0xfff700, description=f"{ctx.author.mention} Flipped coin, we got **Heads**! :coin:")
+        await ctx.send(embed=embed)
+        
+    else:
+        embed = discord.Embed(title="Coinflip | (Bot Name)", color=0xfff700, description=f"{ctx.author.mention} Flipped coin, we got **Tails**! :coin:")
+        await ctx.send(embed=embed)
+
 client.run('OTUzMDkwMjE5MTgyMjYwMjg1.Yi_gbw.XldkfN5wKln9sOmpSqBd1kzEB5k')
