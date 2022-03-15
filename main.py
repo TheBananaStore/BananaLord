@@ -17,6 +17,8 @@ slash = SlashCommand(client, sync_commands=True)
 async def on_ready():
   print("BL logged on.")
 
+
+#random number between 1 and 100
 @slash.slash(
     name="randomnum",
     description="Display a random number between 1 and 100!",
@@ -28,3 +30,5 @@ async def _randomnum(ctx:SlashContext):
     await ctx.send(embed = embed)
 
 client.run('OTUzMDkwMjE5MTgyMjYwMjg1.Yi_gbw.XldkfN5wKln9sOmpSqBd1kzEB5k')
+
+#testing commits
