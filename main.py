@@ -31,4 +31,3 @@ async def _randomnum(ctx:SlashContext):
 
 client.run('OTUzMDkwMjE5MTgyMjYwMjg1.Yi_gbw.XldkfN5wKln9sOmpSqBd1kzEB5k')
 
-#testing commits
