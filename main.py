@@ -2,12 +2,13 @@ import random
 import aiohttp
 import requests
 import discord
+import json
 import asyncio
 import requests
 from discord import Member
 from discord.ext import commands
 from discord.ext.commands.context import Context
-from discord.ext.commands import has_permissions
+from discord.ext.commands import has_permissions, MissingPermissions
 from discord_slash import SlashCommand, SlashContext
 from discord_slash.utils.manage_commands import create_choice, create_option
 
@@ -159,5 +160,41 @@ async def coinflip(ctx:SlashContext):
     else:
         embed = discord.Embed(title="Coinflip | (Bot Name)", color=0xfff700, description=f"{ctx.author.mention} Flipped coin, we got **Tails**! :coin:")
         await ctx.send(embed=embed)
+
+#kick command
+
+@slash.slash(
+    name="kick",
+    description="Kick a member, the ability to kick members is required.",
+    guild_ids=[944368087526944778]
+)
+
+@has_permissions(kick_members=True)
+async def kick(ctx:SlashContext, member: discord.Member, *, reason=None):
+    await member.kick(reason=reason)
+    await ctx.send(f'User {member} was kicked. :white_check_mark:')
+
+@kick.error
+async def kick_error(ctx:SlashContext, error):
+    if isinstance(error, commands.MissingPermissions):
+        await ctx.send("You don't have permissions to kick people. :thonk:")
+
+#ban command
+
+@slash.slash(
+    name="ban",
+    description="Ban a member, the ability to ban members is required.",
+    guild_ids=[944368087526944778]
+)
+
+@has_permissions(ban_members=True)
+async def ban(ctx:SlashContext, member: discord.Member, *, reason=None):
+    await member.ban(reason=reason)
+    await ctx.send(f'User {member} was banned. :white_check_mark:')
+
+@ban.error
+async def ban_error(ctx:SlashContext, error):
+    if isinstance(error, commands.MissingPermissions):
+        await ctx.send("You don't have permissions to ban people. :thonk:")
 
 client.run('OTUzMDkwMjE5MTgyMjYwMjg1.Yi_gbw.XldkfN5wKln9sOmpSqBd1kzEB5k')
