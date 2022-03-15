@@ -34,7 +34,7 @@ async def on_ready():
 )
 async def _meme(ctx: SlashContext):
     embed = discord.Embed(
-        title="", description="A random meme for your eyes.", color=(0xFFF700)
+        title="", description="A random meme for you.", color=(0xFFF700)
     )
 
     async with aiohttp.ClientSession() as cs:
