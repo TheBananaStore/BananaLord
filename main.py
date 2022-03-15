@@ -2,6 +2,7 @@ import random
 import aiohttp
 import requests
 import discord
+import asyncio
 import requests
 from discord import Member
 from discord.ext import commands
@@ -13,11 +14,13 @@ from discord_slash.utils.manage_commands import create_choice, create_option
 client = commands.Bot(command_prefix="bl!")
 slash = SlashCommand(client, sync_commands=True)
 
+#rich presence and status
 @client.event
 async def on_ready():
     await client.change_presence(status=discord.Status.idle, activity=discord.Game('under development'))
     print("BL logged on.")
 
+    
 #meme command, from r/memes subreddit.
 
 @slash.slash(
@@ -79,5 +82,63 @@ async def lock(ctx:SlashContext, channel : discord.TextChannel=None):
     overwrite.send_messages = True
     await channel.set_permissions(ctx.guild.default_role, overwrite=overwrite)
     await ctx.send(':white_check_mark: Channel unlocked.')
+
+
+#dog command, self explanitory
+@slash.slash(
+    name="doggo",
+    description="Display a random dog photo and fact.",
+    guild_ids=[944368087526944778]
+)
+
+async def doggo(ctx:SlashContext):
+    async with aiohttp.ClientSession() as session:
+        request = await session.get('https://some-random-api.ml/img/dog')
+        dogjson = await request.json()
+        request2 = await session.get('https://some-random-api.ml/facts/dog')
+        factjson = await request2.json()
+        
+        embed = discord.Embed(title="Doggo! :dog:", color=0xfff700)
+        embed.set_image(url=dogjson['link'])
+        embed.set_footer(text=factjson['fact'])
+        await ctx.send(embed=embed)
+
+#cat command, self explanitory
+@slash.slash(
+    name="kitty",
+    description="Display a random cat photo and fact.",
+    guild_ids=[944368087526944778]
+)
+
+async def kitty(ctx:SlashContext):
+    async with aiohttp.ClientSession() as session:
+        request = await session.get('https://some-random-api.ml/img/cat')
+        dogjson = await request.json()
+        request2 = await session.get('https://some-random-api.ml/facts/cat')
+        factjson = await request2.json()
+        
+        embed = discord.Embed(title="Kitty! :cat:", color=0xfff700)
+        embed.set_image(url=dogjson['link'])
+        embed.set_footer(text=factjson['fact'])
+        await ctx.send(embed=embed)
+
+#bird command, self explanitory
+@slash.slash(
+    name="birdy",
+    description="Display a random bird photo and fact.",
+    guild_ids=[944368087526944778]
+)
+
+async def kitty(ctx:SlashContext):
+    async with aiohttp.ClientSession() as session:
+        request = await session.get('https://some-random-api.ml/img/bird')
+        dogjson = await request.json()
+        request2 = await session.get('https://some-random-api.ml/facts/bird')
+        factjson = await request2.json()
+        
+        embed = discord.Embed(title="Birdy! :bird:", color=0xfff700)
+        embed.set_image(url=dogjson['link'])
+        embed.set_footer(text=factjson['fact'])
+        await ctx.send(embed=embed)
 
 client.run('OTUzMDkwMjE5MTgyMjYwMjg1.Yi_gbw.XldkfN5wKln9sOmpSqBd1kzEB5k')
