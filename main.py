@@ -2,7 +2,9 @@ import random
 import aiohttp
 import requests
 import discord
+import youtube_dl
 import json
+import os
 import asyncio
 import requests
 from discord import Member
@@ -19,7 +21,7 @@ slash = SlashCommand(client, sync_commands=True)
 @client.event
 async def on_ready():
     await client.change_presence(
-        status=discord.Status.idle, activity=discord.Game("under development")
+        status=discord.Status.idle, activity=discord.Game("/botinfo | Banana App Store")
     )
     print("BL logged on.")
 
@@ -224,7 +226,7 @@ async def kick(ctx: SlashContext, member: discord.Member, *, reason=None):
 @kick.error
 async def kick_error(ctx: SlashContext, error):
     if isinstance(error, commands.MissingPermissions):
-        await ctx.send("You don't have permissions to kick people. :thonk:")
+        await ctx.send("You don't have permissions to kick people.")
 
 
 # Ban command
@@ -244,7 +246,9 @@ async def ban(ctx: SlashContext, member: discord.Member, *, reason=None):
 @ban.error
 async def ban_error(ctx: SlashContext, error):
     if isinstance(error, commands.MissingPermissions):
-        await ctx.send("You don't have permissions to ban people. :thonk:")
+        await ctx.send("You don't have permissions to ban people.")
+
+
 
 #bot info command
 @slash.slash(
@@ -256,12 +260,23 @@ async def ban_error(ctx: SlashContext, error):
 async def botinfo(ctx:SlashContext):
     embed=discord.Embed(title="About Me!", description="Here is some things about me:", color=0xfff700)
     embed.set_author(name="Banana Lord 🍌", url="https://cdn.discordapp.com/attachments/944368088562929766/953091808240492554/azbear.png", icon_url="https://cdn.discordapp.com/attachments/944368088562929766/953091808240492554/azbear.png")
-    embed.add_field(name="Why?", value="I was made to help out in the official Discord server for the Banana Store!", inline=False)
+    embed.add_field(name="Why?", value="I was made to help out in the official Discord server for the Banana Store! But if you would like to add this bot to your own server for free , you can DM Grimet#9620!", inline=False)
     embed.add_field(name="What is the Banana Store?", value="The Banana store is a Linux app store for all major Linux distros!", inline=False)
     embed.add_field(name="Who made you?", value="The main developer is Grimet#9620", inline=False)
     embed.add_field(name="Where can I find the app store?", value="Here: https://github.com/TheBananaStore/TheBananaStore", inline=False)
     embed.add_field(name="Does the store have a website?", value="Yes, but it is still under development: https://thebananastore.cf", inline=False)
-    embed.set_footer(text="-Banana Lord")
+    embed.set_footer(text="-Banana Lord P.S. Why on earth would you want to know stuff about me?")
+    await ctx.send(embed=embed)
+
+#ping pong
+@slash.slash(
+    name="ping",
+    description="Pong!",
+    guild_ids=[944368087526944778]
+)
+
+async def ping(ctx:SlashContext):
+    embed=discord.Embed(title=f":white_check_mark: Pong! Latency: {round(client.latency * 1000)}ms", color=0xFFF700)
     await ctx.send(embed=embed)
 
 client.run('OTUzMDkwMjE5MTgyMjYwMjg1.Yi_gbw.XldkfN5wKln9sOmpSqBd1kzEB5k')
