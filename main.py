@@ -279,4 +279,4 @@ async def ping(ctx:SlashContext):
     embed=discord.Embed(title=f":white_check_mark: Pong! Latency: {round(client.latency * 1000)}ms", color=0xFFF700)
     await ctx.send(embed=embed)
 
-client.run('OTUzMDkwMjE5MTgyMjYwMjg1.Yi_gbw.XldkfN5wKln9sOmpSqBd1kzEB5k')
+client.run('token here')
