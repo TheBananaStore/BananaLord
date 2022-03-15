@@ -46,7 +46,29 @@ async def _meme(ctx: SlashContext):
             await ctx.send(embed=embed)
 
 
+# Nerdmeme command, from r/programminghumor and r/linuxmeme
 
+
+@slash.slash(
+    name="nerdmeme",
+    description="Displays a random meme from a nerdy subreddit",
+    guild_ids=[944368087526944778],
+)
+async def _nerdmeme(ctx: SlashContext):
+    embed = discord.Embed(
+        title="", description="A random meme for you.", color=(0xFFF700)
+    )
+    async with aiohttp.ClientSession() as cs:
+        async with cs.get(
+            "https://www.reddit.com/"
+            + random.choice(["r/programminghumor", "r/linuxmemes"])
+            + "/new.json?sort=hot"
+        ) as r:
+            res = await r.json()
+            embed.set_image(
+                url=res["data"]["children"][random.randint(0, 25)]["data"]["url"]
+            )
+    await ctx.send(embed=embed)
 
 
 # Random number between 1 and 100
