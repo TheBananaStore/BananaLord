@@ -2,4 +2,4 @@
 token = "token here"
 
 # Set to your guilds id (int)
-guild_ids = 1234567890
+guild_id = 1234567890
