@@ -28,6 +28,22 @@ async def on_ready():
     print("BL logged on.")
 
 
+# XKCD Command, returns a random xkcd
+@slash.slash(
+    name="xkcd",
+    description="Displays a random xkcd",
+    guild_ids=[config.guild_id],
+)
+async def xkcd(ctx: SlashContext):
+    embed = discord.Embed(title="", description="xkcd", color=(0xFFF700))
+    url = "https://dynamic.xkcd.com/api-0/jsonp/comic/"
+    id = str(random.randint(1, int(requests.get(url).json()["num"])))
+    jsonXkcd = requests.get(url + id).json()
+    embed = discord.Embed(title="", description=jsonXkcd["alt"], color=(0xFFF700))
+    embed.set_image(url=jsonXkcd["img"])
+    await ctx.send(embed=embed)
+
+
 # Meme command, from r/memes subreddit.
 
 
@@ -251,34 +267,58 @@ async def ban_error(ctx: SlashContext, error):
         await ctx.send("You don't have permissions to ban people.")
 
 
-
-#bot info command
+# bot info command
 @slash.slash(
     name="botinfo",
     description="Display information about me!",
-    guild_ids=[config.guild_id]
+    guild_ids=[config.guild_id],
 )
-
-async def botinfo(ctx:SlashContext):
-    embed=discord.Embed(title="About Me!", description="Here is some things about me:", color=0xfff700)
-    embed.set_author(name="Banana Lord 🍌", url="https://cdn.discordapp.com/attachments/944368088562929766/953091808240492554/azbear.png", icon_url="https://cdn.discordapp.com/attachments/944368088562929766/953091808240492554/azbear.png")
-    embed.add_field(name="Why?", value="I was made to help out in the official Discord server for the Banana Store! But if you would like to add this bot to your own server for free , you can DM Grimet#9620!", inline=False)
-    embed.add_field(name="What is the Banana Store?", value="The Banana store is a Linux app store for all major Linux distros!", inline=False)
-    embed.add_field(name="Who made you?", value="The main developer is Grimet#9620", inline=False)
-    embed.add_field(name="Where can I find the app store?", value="Here: https://github.com/TheBananaStore/TheBananaStore", inline=False)
-    embed.add_field(name="Does the store have a website?", value="Yes, but it is still under development: https://thebananastore.cf", inline=False)
-    embed.set_footer(text="-Banana Lord P.S. Why on earth would you want to know stuff about me?")
+async def botinfo(ctx: SlashContext):
+    embed = discord.Embed(
+        title="About Me!", description="Here is some things about me:", color=0xFFF700
+    )
+    embed.set_author(
+        name="Banana Lord 🍌",
+        url="https://cdn.discordapp.com/attachments/944368088562929766/953091808240492554/azbear.png",
+        icon_url="https://cdn.discordapp.com/attachments/944368088562929766/953091808240492554/azbear.png",
+    )
+    embed.add_field(
+        name="Why?",
+        value="I was made to help out in the official Discord server for the Banana Store! But if you would like to add this bot to your own server for free , you can DM Grimet#9620!",
+        inline=False,
+    )
+    embed.add_field(
+        name="What is the Banana Store?",
+        value="The Banana store is a Linux app store for all major Linux distros!",
+        inline=False,
+    )
+    embed.add_field(
+        name="Who made you?", value="The main developer is Grimet#9620", inline=False
+    )
+    embed.add_field(
+        name="Where can I find the app store?",
+        value="Here: https://github.com/TheBananaStore/TheBananaStore",
+        inline=False,
+    )
+    embed.add_field(
+        name="Does the store have a website?",
+        value="Yes, but it is still under development: https://thebananastore.cf",
+        inline=False,
+    )
+    embed.set_footer(
+        text="-Banana Lord P.S. Why on earth would you want to know stuff about me?"
+    )
     await ctx.send(embed=embed)
 
-#ping pong
-@slash.slash(
-    name="ping",
-    description="Pong!",
-    guild_ids=[config.guild_id]
-)
 
-async def ping(ctx:SlashContext):
-    embed=discord.Embed(title=f":white_check_mark: Pong! Latency: {round(client.latency * 1000)}ms", color=0xFFF700)
+# ping pong
+@slash.slash(name="ping", description="Pong!", guild_ids=[config.guild_id])
+async def ping(ctx: SlashContext):
+    embed = discord.Embed(
+        title=f":white_check_mark: Pong! Latency: {round(client.latency * 1000)}ms",
+        color=0xFFF700,
+    )
     await ctx.send(embed=embed)
+
 
 client.run(config.token)
