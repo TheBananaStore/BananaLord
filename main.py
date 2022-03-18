@@ -16,6 +16,7 @@ from discord_slash.utils.manage_commands import create_choice, create_option
 
 client = commands.Bot(command_prefix="bl!")
 slash = SlashCommand(client, sync_commands=True)
+os.chdir(r'C:\Users\ITdep\Desktop\Coding Projects\Python\Banana Lord Bot')
 
 # Rich presence and status
 @client.event
@@ -24,6 +25,7 @@ async def on_ready():
         status=discord.Status.idle, activity=discord.Game("/botinfo | Banana App Store")
     )
     print("BL logged on.")
+
 
 
 # Meme command, from r/memes subreddit.
@@ -279,4 +281,24 @@ async def ping(ctx:SlashContext):
     embed=discord.Embed(title=f":white_check_mark: Pong! Latency: {round(client.latency * 1000)}ms", color=0xFFF700)
     await ctx.send(embed=embed)
 
-client.run('OTUzMDkwMjE5MTgyMjYwMjg1.Yi_gbw.XldkfN5wKln9sOmpSqBd1kzEB5k')
+#server info
+@slash.slash(
+    name="serverinfo",
+    description="Get info about this server!",
+    guild_ids=[944368087526944778]
+)
+
+async def serverinfo(ctx:SlashContext):
+    role_count = len(ctx.guild.roles)
+
+    serverinfoEmbed = discord.Embed(color=0xFFF700)
+    serverinfoEmbed.add_field(name='Name', value=f"{ctx.guild.name}", inline=False)
+    serverinfoEmbed.add_field(name='Member Count', value=ctx.guild.member_count, inline=False)
+    serverinfoEmbed.add_field(name='Verification Level', value=str(ctx.guild.verification_level), inline=False)
+    serverinfoEmbed.add_field(name='Highest Role', value=ctx.guild.roles[-2], inline=False)
+    serverinfoEmbed.add_field(name='Number of Roles', value=str(role_count), inline=False)
+
+    await ctx.send(embed = serverinfoEmbed)
+
+
+client.run('')
