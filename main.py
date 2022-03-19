@@ -342,7 +342,3 @@ async def serverinfo(ctx:SlashContext):
 
 
 client.run(config.token)
-
-
-
-client.run(config.token)
