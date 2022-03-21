@@ -1,5 +1,5 @@
 # Set to your token (str)
-token = "token here"
+token = ""
 
 # Set to your guilds id (int)
-guild_id = 1234567890
+guild_id = 944368087526944778
