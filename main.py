@@ -17,7 +17,10 @@ from discord_slash import SlashCommand, SlashContext
 from discord_slash.utils.manage_commands import create_choice, create_option
 
 client = commands.Bot(command_prefix="bl!")
-slash = SlashCommand(client, sync_commands=True) 
+
+slash = SlashCommand(client, sync_commands=True)
+os.chdir(r'C:\Users\ITdep\Desktop\Coding Projects\Python\Banana Lord Bot')
+
 
 # Rich presence and status
 @client.event
