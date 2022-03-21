@@ -1,12 +1,14 @@
 import random
+import os
+import json
+
+import config
+
 import aiohttp
 import requests
 import discord
-import youtube_dl
-import json
-import os
+import aiosqlite
 import asyncio
-import requests
 from discord import Member
 from discord.ext import commands
 from discord.ext.commands.context import Context
@@ -15,8 +17,7 @@ from discord_slash import SlashCommand, SlashContext
 from discord_slash.utils.manage_commands import create_choice, create_option
 
 client = commands.Bot(command_prefix="bl!")
-slash = SlashCommand(client, sync_commands=True)
-os.chdir(r'C:\Users\ITdep\Desktop\Coding Projects\Python\Banana Lord Bot')
+slash = SlashCommand(client, sync_commands=True) 
 
 # Rich presence and status
 @client.event
@@ -25,7 +26,94 @@ async def on_ready():
         status=discord.Status.idle, activity=discord.Game("/botinfo | Banana App Store")
     )
     print("BL logged on.")
+    setattr(client, "db", await aiosqlite.connect("level.db"))
+    async with client.db.cursor() as cursor:
+        await cursor.execute("CREATE TABLE IF NOT EXISTS levels (level INTEGER, xp INTEGER, user INTEGER, guild INTEGER)")
 
+#leveling system
+@client.event
+async def on_message(message):
+    if message.author.bot:
+        return
+    author = message.author
+    guild = message.guild
+    async with client.db.cursor() as cursor:
+        await cursor.execute("SELECT xp FROM levels WHERE user = ? AND guild = ?", (author.id, guild.id,))
+        xp = await cursor.fetchone()
+        await cursor.execute("SELECT level FROM levels WHERE user = ? AND guild = ?", (author.id, guild.id,))
+        level = await cursor.fetchone()
+
+        if not xp or not level:
+            await cursor.execute("INSERT INTO levels (level, xp, user, guild) VALUES (?, ?, ?, ?)", (1, 0, author.id, guild.id,))
+
+        try:
+            xp = xp[0]
+            level = level[0]
+        except TypeError:
+            xp = 0
+            level = 0
+
+        if level < 5:
+            xp += random.randint(1, 3)
+            await cursor.execute("UPDATE levels SET xp = ? WHERE user = ? AND guild = ?", (xp, author.id, guild.id,))
+
+        else:
+            rand = random.randint(1, (level//4))
+            if rand == 1:
+                xp += random.randint(1, 3)
+                await cursor.execute("UPDATE levels SET xp = ? WHERE user = ? AND guild = ?", (xp, author.id, guild.id,))
+
+        if xp >= 100:
+            level += 1
+            await cursor.execute("UPDATE levels SET level = ? WHERE user = ? AND guild = ?", (0, author.id, guild.id,))
+            await cursor.execute("UPDATE levels SET xp = ? WHERE user = ? AND guild = ?", (0, author.id, guild.id,))
+
+            await message.channel.send(f"{author.mention} has leveled up to level **{level}**!")
+
+        await client.db.commit()
+
+@slash.slash(
+    name="level",
+    description="View someone's level!",
+    guild_ids=[config.guild_id],
+)
+async def level(ctx: SlashContext, member: discord.Member = None):
+    if member is None:
+        member = ctx.author
+    async with client.db.cursor() as cursor:
+        await cursor.execute("SELECT xp FROM levels WHERE user = ? AND guild = ?", (member.id, ctx.guild.id,))
+        xp = await cursor.fetchone()
+        await cursor.execute("SELECT level FROM levels WHERE user = ? AND guild = ?", (member.id, ctx.guild.id,))
+        level = await cursor.fetchone()
+
+        if not xp or not level:
+            await cursor.execute("INSERT INTO levels (level, xp, user, guild) VALUES (?, ?, ?, ?)", (0, 0, member.id, ctx.guild.id,))
+
+        try:
+            xp = xp[0]
+            level = level[0]
+        except TypeError:
+            xp = 0
+            level = 0
+
+        embed = discord.Embed(title=f"{member.name}'s level", color=0xFFF700 ,description=f"Level: `{level}`\nXP: `{xp}`")
+        await ctx.send(embed=embed)
+
+
+# XKCD Command, returns a random xkcd
+@slash.slash(
+    name="xkcd",
+    description="Displays a random xkcd",
+    guild_ids=[config.guild_id],
+)
+async def xkcd(ctx: SlashContext):
+    embed = discord.Embed(title="", description="xkcd", color=(0xFFF700))
+    url = "https://dynamic.xkcd.com/api-0/jsonp/comic/"
+    id = str(random.randint(1, int(requests.get(url).json()["num"])))
+    jsonXkcd = requests.get(url + id).json()
+    embed = discord.Embed(title="", description=jsonXkcd["alt"], color=(0xFFF700))
+    embed.set_image(url=jsonXkcd["img"])
+    await ctx.send(embed=embed)
 
 
 # Meme command, from r/memes subreddit.
@@ -34,7 +122,7 @@ async def on_ready():
 @slash.slash(
     name="meme",
     description="Displays a random meme from the r/Memes subreddit!",
-    guild_ids=[944368087526944778],
+    guild_ids=[config.guild_id],
 )
 async def _meme(ctx: SlashContext):
     embed = discord.Embed(
@@ -56,7 +144,7 @@ async def _meme(ctx: SlashContext):
 @slash.slash(
     name="nerdmeme",
     description="Displays a random meme from a nerdy subreddit",
-    guild_ids=[944368087526944778],
+    guild_ids=[config.guild_id],
 )
 async def _nerdmeme(ctx: SlashContext):
     embed = discord.Embed(
@@ -81,7 +169,7 @@ async def _nerdmeme(ctx: SlashContext):
 @slash.slash(
     name="randomnum",
     description="Display a random number between 1 and 100!",
-    guild_ids=[944368087526944778],
+    guild_ids=[config.guild_id],
 )
 async def _randomnum(ctx: SlashContext):
     embed = discord.Embed(
@@ -98,7 +186,7 @@ async def _randomnum(ctx: SlashContext):
 @slash.slash(
     name="lock",
     description="Lock a specified channel, the ability to manage channels is required.",
-    guild_ids=[944368087526944778],
+    guild_ids=[config.guild_id],
 )
 @commands.has_permissions(manage_channels=True)
 async def lock(ctx: SlashContext, channel: discord.TextChannel = None):
@@ -115,7 +203,7 @@ async def lock(ctx: SlashContext, channel: discord.TextChannel = None):
 @slash.slash(
     name="unlock",
     description="Unlock a specified channel, the ability to manage channels is required.",
-    guild_ids=[944368087526944778],
+    guild_ids=[config.guild_id],
 )
 @commands.has_permissions(manage_channels=True)
 async def lock(ctx: SlashContext, channel: discord.TextChannel = None):
@@ -130,7 +218,7 @@ async def lock(ctx: SlashContext, channel: discord.TextChannel = None):
 @slash.slash(
     name="doggo",
     description="Display a random dog photo and fact.",
-    guild_ids=[944368087526944778],
+    guild_ids=[config.guild_id],
 )
 async def doggo(ctx: SlashContext):
     async with aiohttp.ClientSession() as session:
@@ -149,7 +237,7 @@ async def doggo(ctx: SlashContext):
 @slash.slash(
     name="kitty",
     description="Display a random cat photo and fact.",
-    guild_ids=[944368087526944778],
+    guild_ids=[config.guild_id],
 )
 async def kitty(ctx: SlashContext):
     async with aiohttp.ClientSession() as session:
@@ -168,7 +256,7 @@ async def kitty(ctx: SlashContext):
 @slash.slash(
     name="birdy",
     description="Display a random bird photo and fact.",
-    guild_ids=[944368087526944778],
+    guild_ids=[config.guild_id],
 )
 async def kitty(ctx: SlashContext):
     async with aiohttp.ClientSession() as session:
@@ -191,7 +279,7 @@ determine_flip = [1, 0]
 @slash.slash(
     name="coinflip",
     description="Heads or tails, which shall it be?",
-    guild_ids=[944368087526944778],
+    guild_ids=[config.guild_id],
 )
 async def coinflip(ctx: SlashContext):
     if random.choice(determine_flip) == 1:
@@ -217,7 +305,7 @@ async def coinflip(ctx: SlashContext):
 @slash.slash(
     name="kick",
     description="Kick a member, the ability to kick members is required.",
-    guild_ids=[944368087526944778],
+    guild_ids=[config.guild_id],
 )
 @has_permissions(kick_members=True)
 async def kick(ctx: SlashContext, member: discord.Member, *, reason=None):
@@ -237,7 +325,7 @@ async def kick_error(ctx: SlashContext, error):
 @slash.slash(
     name="ban",
     description="Ban a member, the ability to ban members is required.",
-    guild_ids=[944368087526944778],
+    guild_ids=[config.guild_id],
 )
 @has_permissions(ban_members=True)
 async def ban(ctx: SlashContext, member: discord.Member, *, reason=None):
@@ -251,34 +339,57 @@ async def ban_error(ctx: SlashContext, error):
         await ctx.send("You don't have permissions to ban people.")
 
 
-
-#bot info command
+# bot info command
 @slash.slash(
     name="botinfo",
     description="Display information about me!",
-    guild_ids=[944368087526944778]
+    guild_ids=[config.guild_id],
 )
-
-async def botinfo(ctx:SlashContext):
-    embed=discord.Embed(title="About Me!", description="Here is some things about me:", color=0xfff700)
-    embed.set_author(name="Banana Lord 🍌", url="https://cdn.discordapp.com/attachments/944368088562929766/953091808240492554/azbear.png", icon_url="https://cdn.discordapp.com/attachments/944368088562929766/953091808240492554/azbear.png")
-    embed.add_field(name="Why?", value="I was made to help out in the official Discord server for the Banana Store! But if you would like to add this bot to your own server for free , you can DM Grimet#9620!", inline=False)
-    embed.add_field(name="What is the Banana Store?", value="The Banana store is a Linux app store for all major Linux distros!", inline=False)
-    embed.add_field(name="Who made you?", value="The main developer is Grimet#9620", inline=False)
-    embed.add_field(name="Where can I find the app store?", value="Here: https://github.com/TheBananaStore/TheBananaStore", inline=False)
-    embed.add_field(name="Does the store have a website?", value="Yes, but it is still under development: https://thebananastore.cf", inline=False)
-    embed.set_footer(text="-Banana Lord P.S. Why on earth would you want to know stuff about me?")
+async def botinfo(ctx: SlashContext):
+    embed = discord.Embed(
+        title="About Me!", description="Here is some things about me:", color=0xFFF700
+    )
+    embed.set_author(
+        name="Banana Lord 🍌",
+        url="https://cdn.discordapp.com/attachments/944368088562929766/953091808240492554/azbear.png",
+        icon_url="https://cdn.discordapp.com/attachments/944368088562929766/953091808240492554/azbear.png",
+    )
+    embed.add_field(
+        name="Why?",
+        value="I was made to help out in the official Discord server for the Banana Store! But if you would like to add this bot to your own server for free , you can DM Grimet#9620!",
+        inline=False,
+    )
+    embed.add_field(
+        name="What is the Banana Store?",
+        value="The Banana store is a Linux app store for all major Linux distros!",
+        inline=False,
+    )
+    embed.add_field(
+        name="Who made you?", value="The main developer is Grimet#9620", inline=False
+    )
+    embed.add_field(
+        name="Where can I find the app store?",
+        value="Here: https://github.com/TheBananaStore/TheBananaStore",
+        inline=False,
+    )
+    embed.add_field(
+        name="Does the store have a website?",
+        value="Yes, but it is still under development: https://thebananastore.cf",
+        inline=False,
+    )
+    embed.set_footer(
+        text="-Banana Lord P.S. Why on earth would you want to know stuff about me?"
+    )
     await ctx.send(embed=embed)
 
-#ping pong
-@slash.slash(
-    name="ping",
-    description="Pong!",
-    guild_ids=[944368087526944778]
-)
 
-async def ping(ctx:SlashContext):
-    embed=discord.Embed(title=f":white_check_mark: Pong! Latency: {round(client.latency * 1000)}ms", color=0xFFF700)
+# ping pong
+@slash.slash(name="ping", description="Pong!", guild_ids=[config.guild_id])
+async def ping(ctx: SlashContext):
+    embed = discord.Embed(
+        title=f":white_check_mark: Pong! Latency: {round(client.latency * 1000)}ms",
+        color=0xFFF700,
+    )
     await ctx.send(embed=embed)
 
 #server info
@@ -301,4 +412,4 @@ async def serverinfo(ctx:SlashContext):
     await ctx.send(embed = serverinfoEmbed)
 
 
-client.run('')
+client.run(config.token)
