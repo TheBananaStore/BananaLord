@@ -7,7 +7,6 @@ import config
 import aiohttp
 import requests
 import discord
-import aiosqlite
 import asyncio
 from discord import Member
 from discord.ext import commands
@@ -29,78 +28,6 @@ async def on_ready():
         status=discord.Status.idle, activity=discord.Game("/botinfo | Banana App Store")
     )
     print("BL logged on.")
-    setattr(client, "db", await aiosqlite.connect("level.db"))
-    async with client.db.cursor() as cursor:
-        await cursor.execute("CREATE TABLE IF NOT EXISTS levels (level INTEGER, xp INTEGER, user INTEGER, guild INTEGER)")
-
-#leveling system
-@client.event
-async def on_message(message):
-    if message.author.bot:
-        return
-    author = message.author
-    guild = message.guild
-    async with client.db.cursor() as cursor:
-        await cursor.execute("SELECT xp FROM levels WHERE user = ? AND guild = ?", (author.id, guild.id,))
-        xp = await cursor.fetchone()
-        await cursor.execute("SELECT level FROM levels WHERE user = ? AND guild = ?", (author.id, guild.id,))
-        level = await cursor.fetchone()
-
-        if not xp or not level:
-            await cursor.execute("INSERT INTO levels (level, xp, user, guild) VALUES (?, ?, ?, ?)", (1, 0, author.id, guild.id,))
-
-        try:
-            xp = xp[0]
-            level = level[0]
-        except TypeError:
-            xp = 0
-            level = 0
-
-        if level < 5:
-            xp += random.randint(1, 3)
-            await cursor.execute("UPDATE levels SET xp = ? WHERE user = ? AND guild = ?", (xp, author.id, guild.id,))
-
-        else:
-            rand = random.randint(1, (level//4))
-            if rand == 1:
-                xp += random.randint(1, 3)
-                await cursor.execute("UPDATE levels SET xp = ? WHERE user = ? AND guild = ?", (xp, author.id, guild.id,))
-
-        if xp >= 100:
-            level += 1
-            await cursor.execute("UPDATE levels SET level = ? WHERE user = ? AND guild = ?", (0, author.id, guild.id,))
-            await cursor.execute("UPDATE levels SET xp = ? WHERE user = ? AND guild = ?", (0, author.id, guild.id,))
-
-            await message.channel.send(f"{author.mention} has leveled up to level **{level}**!")
-
-        await client.db.commit()
-
-@slash.slash(
-    name="level",
-    description="View someone's level!",
-    guild_ids=[config.guild_id],
-)
-async def level(ctx: SlashContext, member: discord.Member = None):
-    if member is None:
-        member = ctx.author
-    async with client.db.cursor() as cursor:
-        await cursor.execute("SELECT xp FROM levels WHERE user = ? AND guild = ?", (member.id, ctx.guild.id,))
-        xp = await cursor.fetchone()
-        await cursor.execute("SELECT level FROM levels WHERE user = ? AND guild = ?", (member.id, ctx.guild.id,))
-        level = await cursor.fetchone()
-
-        if not xp or not level:
-            await cursor.execute("INSERT INTO levels (level, xp, user, guild) VALUES (?, ?, ?, ?)", (0, 0, member.id, ctx.guild.id,))
-
-        try:
-            xp = xp[0]
-            level = level[0]
-        except TypeError:
-            xp = 0
-            level = 0
-
-        embed = discord.Embed(title=f"{member.name}'s level", color=0xFFF700 ,description=f"Level: `{level}`\nXP: `{xp}`")
-        await ctx.send(embed=embed)
 
 
 # XKCD Command, returns a random xkcd
